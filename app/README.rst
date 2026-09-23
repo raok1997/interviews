@@ -31,6 +31,19 @@ Or on Windows cmd::
     $ py -3 -m venv .venv
     $ .venv\Scripts\activate.bat
 
+Or on Windows PowerShell::
+
+    $ py -3 -m venv .venv
+    $ .venv\Scripts\Activate.ps1
+
+If PowerShell refuses to run the script, allow local scripts once with
+``Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`` and try again.
+Running ``activate.bat`` from PowerShell does not activate the virtualenv.
+
+Once activated, your prompt starts with ``(.venv)``. Make sure it does
+before running ``pip``, otherwise packages are installed outside the
+virtualenv and commands like ``pytest`` won't be found.
+
 Install Flaskr::
 
     $ pip install -e .
@@ -58,7 +71,7 @@ Test
 
 ::
 
-    $ pip install '.[test]'
+    $ pip install -e ".[test]"
     $ pytest
 
 Run with coverage report::
