@@ -1,0 +1,139 @@
+--- a/flaskr/blog.py
++++ b/flaskr/blog.py
+@@ -20,11 +20,25 @@
+     posts = db.execute(
+         "SELECT p.id, title, body, created, author_id, username"
+         " FROM post p JOIN user u ON p.author_id = u.id"
++        " WHERE published = 1"
+         " ORDER BY created DESC"
+     ).fetchall()
+     return render_template("blog/index.html", posts=posts)
+ 
+ 
++@bp.route("/drafts")
++def drafts():
++    """Show the current user's unpublished drafts."""
++    db = get_db()
++    posts = db.execute(
++        "SELECT p.id, title, body, created, author_id, username"
++        " FROM post p JOIN user u ON p.author_id = u.id"
++        " WHERE published = 0"
++        " ORDER BY created DESC"
++    ).fetchall()
++    return render_template("blog/drafts.html", posts=posts)
++
++
+ def get_post(id, check_author=True):
+     """Get a post and its author by id.
+ 
+@@ -64,6 +78,7 @@
+     if request.method == "POST":
+         title = request.form["title"]
+         body = request.form["body"]
++        published = request.form.get("published")
+         error = None
+ 
+         if not title:
+@@ -74,8 +89,9 @@
+         else:
+             db = get_db()
+             db.execute(
+-                "INSERT INTO post (title, body, author_id) VALUES (?, ?, ?)",
+-                (title, body, g.user["id"]),
++                "INSERT INTO post (title, body, author_id, published)"
++                " VALUES (?, ?, ?, ?)",
++                (title, body, g.user["id"], published),
+             )
+             db.commit()
+             return redirect(url_for("blog.index"))
+@@ -121,5 +137,21 @@
+     get_post(id)
+     db = get_db()
+     db.execute("DELETE FROM post WHERE id = ?", (id,))
++    db.commit()
++    return redirect(url_for("blog.index"))
++
++
++@bp.route("/<int:id>/publish", methods=("POST",))
++@login_required
++def publish(id):
++    """Publish one of the current user's drafts."""
++    post = get_post(id)
++
++    if post.get("published") == 1:
++        flash("That post is already published.")
++        return redirect(url_for("blog.index"))
++
++    db = get_db()
++    db.execute("UPDATE post SET published = 1 WHERE id = ?", (id,))
+     db.commit()
+     return redirect(url_for("blog.index"))
+--- a/flaskr/schema.sql
++++ b/flaskr/schema.sql
+@@ -16,5 +16,6 @@
+   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   title TEXT NOT NULL,
+   body TEXT NOT NULL,
++  published INTEGER DEFAULT 1,
+   FOREIGN KEY (author_id) REFERENCES user (id)
+ );
+--- a/flaskr/templates/base.html	2026-09-23 17:24:58
++++ b/flaskr/templates/base.html	2026-09-23 17:24:58
+@@ -6,6 +6,7 @@
+   <ul>
+     {% if g.user %}
+       <li><span>{{ g.user['username'] }}</span>
++      <li><a href="{{ url_for('blog.drafts') }}">Drafts</a>
+       <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+     {% else %}
+       <li><a href="{{ url_for('auth.register') }}">Register</a>
+--- a/flaskr/templates/blog/create.html	2026-09-23 17:24:58
++++ b/flaskr/templates/blog/create.html	2026-09-23 17:24:58
+@@ -10,6 +10,8 @@
+     <input name="title" id="title" value="{{ request.form['title'] }}" required>
+     <label for="body">Body</label>
+     <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
++    <label for="published">Publish immediately</label>
++    <input type="checkbox" name="published" id="published" checked>
+     <input type="submit" value="Save">
+   </form>
+ {% endblock %}
+--- a/flaskr/templates/blog/drafts.html	1970-01-01 05:30:00
++++ b/flaskr/templates/blog/drafts.html	2026-09-23 17:24:58
+@@ -0,0 +1,25 @@
++{% extends 'base.html' %}
++
++{% block header %}
++  <h1>{% block title %}Drafts{% endblock %}</h1>
++{% endblock %}
++
++{% block content %}
++  {% for post in posts %}
++    <article class="post">
++      <header>
++        <div>
++          <h1>{{ post['title'] }}</h1>
++          <div class="about">by {{ post['username'] }} on {{ post['created'].strftime('%Y-%m-%d') }}</div>
++        </div>
++        <form method="post" action="{{ url_for('blog.publish', id=post['id']) }}">
++          <input class="action" type="submit" value="Publish">
++        </form>
++      </header>
++      <p class="body">{{ post['body'] }}</p>
++    </article>
++    {% if not loop.last %}
++      <hr>
++    {% endif %}
++  {% endfor %}
++{% endblock %}
+--- a/tests/data.sql	2026-09-23 17:24:58
++++ b/tests/data.sql	2026-09-23 17:24:58
+@@ -3,6 +3,6 @@
+   ('test', 'pbkdf2:sha256:50000$TCI4GzcX$0de171a4f4dac32e3364c7ddc7c14f3e2fa61f2d17574483f7ffbb431b4acb2f'),
+   ('other', 'pbkdf2:sha256:50000$kJPKsz6N$d2d4784f1b030a9761f5ccaeeaca413f27f2ecb76d6168407af962ddce849f79');
+ 
+-INSERT INTO post (title, body, author_id, created)
++INSERT INTO post (title, body, author_id, created, published)
+ VALUES
+-  ('test title', 'test' || x'0a' || 'body', 1, '2018-01-01 00:00:00');
++  ('test title', 'test' || x'0a' || 'body', 1, '2018-01-01 00:00:00', 1);
