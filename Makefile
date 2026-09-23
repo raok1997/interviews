@@ -8,11 +8,13 @@ VENV_BIN := Scripts
 VENV_RUN := .\.venv\Scripts\python
 BLANK_ECHO := echo.
 R1_OUT ?= candidate/r1
+R1_TEST_COPY ?= copy "round1_code_read/test_active_plan.py" "$(R1_OUT)/"
 else
 VENV_BIN := bin
 VENV_RUN := ./.venv/bin/python
 BLANK_ECHO := echo
 R1_OUT ?= /tmp/r1
+R1_TEST_COPY ?= cp round1_code_read/test_active_plan.py $(R1_OUT)/
 endif
 
 R2_PY := $(R2)/.venv/$(VENV_BIN)/python
@@ -54,7 +56,7 @@ help:
 	@echo "  make run-round3       start the round-3 app on :5000"
 	@echo "  make test-round1      run the round-1 doctest suite"
 	@$(BLANK_ECHO)
-	@echo "  make candidate-round1 copy round-1 candidate files to /tmp/r1"
+	@echo "  make candidate-round1 copy round-1 candidate files to $(R1_OUT)"
 	@echo "  make clean            remove work/ entirely"
 
 # ---------------------------------------------------------------- setup
@@ -127,9 +129,9 @@ candidate-round1:
 	@$(call REMOVE_DIR,$(R1_OUT))
 	@$(call MAKE_DIR,$(R1_OUT))
 	@$(call COPY_FILE,round1_code_read/active_plan.py,$(R1_OUT)/active_plan.py)
-	@echo "$(R1_OUT)/active_plan.py — hand this over."
+	@echo "$(R1_OUT)/active_plan.py - hand this over."
 	@echo "Add test_active_plan.py ONLY after the three questions are done:"
-	@echo "  cp round1_code_read/test_active_plan.py /tmp/r1/"
+	@echo  $(R1_TEST_COPY)
 
 # ---------------------------------------------------------------- cleanup
 

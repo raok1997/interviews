@@ -58,18 +58,23 @@ figure in them was produced by running the code.
 ### Round 1
 
 ```bash
-make candidate-round1     # copies active_plan.py to /tmp/r1
+make candidate-round1
 ```
+
+On Windows, do not append a `#` comment to a command. `cmd.exe` passes it to
+`make` as another target instead of treating it as a comment.
 
 Hand over the test file only *after* the three questions are done.
 
 ### Round 2
 
 ```bash
-make run-round2           # init-db + serve on :5000
-# register a user in the browser, then, in another shell:
-make seed-round2          # 30 sample posts, 14 matching "apple"
+make run-round2
+make seed-round2
 ```
+
+Register a user in the browser before running `make seed-round2` in another
+shell. The seed loads 30 sample posts, including 14 matching `"apple"`.
 
 The 14 matters — it is above the helper's `DEFAULT_LIMIT` of 10, which is what
 makes one of the defects visible on screen instead of theoretical.
@@ -94,16 +99,17 @@ clone is local. **Strip the box after building it.**
 
 ```bash
 git clone <private repo url> interviews && cd interviews
-make setup && make verify          # must end with "All rounds verified."
+make setup && make verify
 
-# Anything that reads interviewer files must run BEFORE the strip:
-make seed-round2                   # register a user in the browser first
-make candidate-round1              # stages /tmp/r1/active_plan.py
+make seed-round2
+make candidate-round1
 
-# Now remove everything the candidate must not see, keeping work/ in place:
 rm -rf app round1_code_read round2_build round3_review scorecard \
        README.md CONTEXT.md Makefile .git
 ```
+
+Run the seed after registering a user, then run the candidate handoff before
+removing the interviewer files. Keep `work/` in place.
 
 Order matters — `make seed-round2` reads `round2_build/seed_dev_data.py` and
 `make candidate-round1` reads `round1_code_read/`. Both are gone after the strip.
