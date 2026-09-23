@@ -87,8 +87,8 @@ stripped — see *Preparing the candidate workstation* in `README.md`. `README.m
 also lists the files that must never be copied out, and the `grep` check to run
 on a staged copy.
 
-- **Round 1** — `make candidate-round1`. Hand over the test file only after the
-  three questions are done.
+- **Round 1** — `make candidate` stages `active_plan.py` in `candidate/r1/`. Hand
+  over the test file only after the three questions are done.
 - **Rounds 2 and 3** — prepare the machine (`make run-round2` / `make run-round3`)
   and let them work on it. Nothing is copied out, but the candidate has a shell
   on that box: strip the clone down to `work/` before they sit at it.

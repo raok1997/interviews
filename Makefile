@@ -7,14 +7,10 @@ ifeq ($(OS),Windows_NT)
 VENV_BIN := Scripts
 VENV_RUN := .\.venv\Scripts\python
 BLANK_ECHO := echo.
-R1_OUT ?= candidate/r1
-R1_TEST_COPY ?= copy "round1_code_read/test_active_plan.py" "$(R1_OUT)/"
 else
 VENV_BIN := bin
 VENV_RUN := ./.venv/bin/python
 BLANK_ECHO := echo
-R1_OUT ?= /tmp/r1
-R1_TEST_COPY ?= cp round1_code_read/test_active_plan.py $(R1_OUT)/
 endif
 
 R2_PY := $(R2)/.venv/$(VENV_BIN)/python
@@ -42,7 +38,7 @@ endef
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup verify reset clean run-round2 run-round3 seed-round2 test-round1 candidate-round1
+.PHONY: help setup verify reset clean run-round2 run-round3 seed-round2 test-round1 candidate strip
 
 help:
 	@echo "Interview materials — see README.md"
@@ -56,7 +52,8 @@ help:
 	@echo "  make run-round3       start the round-3 app on :5000"
 	@echo "  make test-round1      run the round-1 doctest suite"
 	@$(BLANK_ECHO)
-	@echo "  make candidate-round1 copy round-1 candidate files to $(R1_OUT)"
+	@echo "  make candidate        stage every candidate file (all rounds) in candidate/"
+	@echo "  make strip            check the machine is ready, then delete interviewer files"
 	@echo "  make clean            remove work/ entirely"
 
 # ---------------------------------------------------------------- setup
@@ -125,13 +122,11 @@ run-round3: $(R3)/.ready
 
 # ---------------------------------------------------------------- handing over
 
-candidate-round1:
-	@$(call REMOVE_DIR,$(R1_OUT))
-	@$(call MAKE_DIR,$(R1_OUT))
-	@$(call COPY_FILE,round1_code_read/active_plan.py,$(R1_OUT)/active_plan.py)
-	@echo "$(R1_OUT)/active_plan.py - hand this over."
-	@echo "Add test_active_plan.py ONLY after the three questions are done:"
-	@echo  $(R1_TEST_COPY)
+candidate:
+	@$(PY) tools/handover.py stage
+
+strip:
+	@$(PY) tools/handover.py strip
 
 # ---------------------------------------------------------------- cleanup
 

@@ -67,11 +67,18 @@ Once it's serving, stop it with Ctrl+C.
 ### 4. Stage the candidate files
 
 ```powershell
-make candidate-round1
-New-Item -ItemType Directory -Force candidate\r2, candidate\r3
-Copy-Item round2_build\TASK.md candidate\r2\
-Copy-Item round3_review\QUESTIONS.md, round3_review\review.diff candidate\r3\
+make candidate
 ```
+
+This creates everything the candidate needs:
+
+| Round | Files on the stripped machine |
+|---|---|
+| 1 | `candidate\r1\active_plan.py` |
+| 2 | `candidate\r2\TASK.md` + the app in `work\round2` |
+| 3 | `candidate\r3\QUESTIONS.md`, `candidate\r3\review.diff` + the app in `work\round3` |
+
+Round 1 has no app, so it has no folder under `work\`.
 
 Copy `round1_code_read\test_active_plan.py` to a USB stick or your laptop, **not**
 this machine. You hand it over only after the round 1 questions.
@@ -79,23 +86,19 @@ this machine. You hand it over only after the round 1 questions.
 ### 5. Strip the machine
 
 ```powershell
-Remove-Item -Recurse -Force app, round1_code_read, round2_build, round3_review, scorecard, README.md, CONTEXT.md, Makefile, .gitignore, .pytest_cache, .git
+make strip
 ```
 
-Keep `work\` and `candidate\`. **Don't move or rename `work\`.** Its virtualenvs
-are tied to its absolute path.
+It checks the machine first: all the files in the table above, both
+virtualenvs, a round 2 database with a user and 14 "apple" posts, and a round 3
+database. If anything is missing, it lists the problem and **deletes nothing**.
+Fix it and run `make strip` again.
 
-Removing `.git` matters. The history holds every answer key.
+When every check passes, it deletes all the interviewer files, including
+`.git`, whose history holds every answer key. It ends by listing what's left:
+only `work` and `candidate`.
 
-Check that nothing is left:
-
-```powershell
-Get-ChildItem -Force
-Get-ChildItem -Recurse -Force -Include ANSWER_KEY.md, VERIFY.md, CONTEXT.md, verify_defects.py, seed_dev_data.py
-```
-
-The first command should list only `work` and `candidate`. The second should
-print nothing.
+**Don't move or rename `work\`.** Its virtualenvs are tied to its absolute path.
 
 ### 6. Start the apps during the interview
 
