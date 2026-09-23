@@ -11,7 +11,7 @@ Assessment materials for one engineering hire. Three rounds, all run on site.
 
 ## Setting up on a new machine
 
-Needs **Python 3.11+**, `make`, `patch`, and `git`. No network at interview time
+Needs **Python 3.11+**, `make`, and `git`. No network at interview time
 — Flaskr is vendored in `app/`.
 
 ```bash
