@@ -86,6 +86,51 @@ make run-round3
 They read `round3_review/review.diff` — 139 lines, 6 files. **The suite passes
 on that branch**, deliberately.
 
+## Preparing the candidate workstation
+
+The candidate gets a shell on this machine in rounds 2 and 3, so they can read
+anything left on disk. A private GitHub repo does not protect you here — the
+clone is local. **Strip the box after building it.**
+
+```bash
+git clone <private repo url> interviews && cd interviews
+make setup && make verify          # must end with "All rounds verified."
+
+# Anything that reads interviewer files must run BEFORE the strip:
+make seed-round2                   # register a user in the browser first
+make candidate-round1              # stages /tmp/r1/active_plan.py
+
+# Now remove everything the candidate must not see, keeping work/ in place:
+rm -rf app round1_code_read round2_build round3_review scorecard \
+       README.md CONTEXT.md Makefile .git
+```
+
+Order matters — `make seed-round2` reads `round2_build/seed_dev_data.py` and
+`make candidate-round1` reads `round1_code_read/`. Both are gone after the strip.
+
+**Do not move or rename `work/`.** Each work tree holds an editable install
+bound to its absolute path:
+
+```
+work/round2/.venv/.../__editable__.pth -> /path/to/interviews/work/round2
+```
+
+Move the directory and the install breaks. Delete the interviewer files *around*
+`work/`, leaving it exactly where `make setup` put it.
+
+Removing `.git` matters as much as the files: history carries every answer key,
+so a clone with `.git` intact can recover all of them.
+
+Verify the stripped tree:
+
+```bash
+grep -ril "answer\|defect\|seeded" . && echo "STILL DIRTY — do not hand over"
+```
+
+Resetting after the strip is a fresh `git clone`, not `make reset` — the
+Makefile and `.git` are gone. That rebuilds from a known-good remote rather than
+local state, which is the safer reset anyway.
+
 ## Between candidates
 
 ```bash

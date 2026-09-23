@@ -4,8 +4,8 @@ Assessment materials for **one** hire: a product engineer who will work on the
 First-Tek commercial real-estate platform (`~/Desktop/code/First-Tek`).
 
 This repo is **interviewer-facing and stays private.** Candidates never clone it
-— they get generated copies with the answer keys stripped. See *Handing files to
-a candidate* below.
+themselves — you clone it onto the workstation, build the work trees, then strip
+everything else off the box. See *Handing files to a candidate* below.
 
 ## The hire
 
@@ -81,14 +81,17 @@ reimbursed retroactively for **both** visits once the candidate clears visit one
 
 ## Handing files to a candidate
 
-Answer keys live freely in this repo because **the repo never leaves it.** See
-`README.md` for the full list of files that must never be copied out, and the
-`grep` check to run on a staged copy.
+Answer keys live freely in this repo, so **the repo must never be readable by a
+candidate.** It is cloned onto the workstation to build the work trees, then
+stripped — see *Preparing the candidate workstation* in `README.md`. `README.md`
+also lists the files that must never be copied out, and the `grep` check to run
+on a staged copy.
 
 - **Round 1** — `make candidate-round1`. Hand over the test file only after the
   three questions are done.
 - **Rounds 2 and 3** — prepare the machine (`make run-round2` / `make run-round3`)
-  and let them work on it. Nothing is copied, so nothing can leak.
+  and let them work on it. Nothing is copied out, but the candidate has a shell
+  on that box: strip the clone down to `work/` before they sit at it.
 
 ## State
 
@@ -114,7 +117,7 @@ and `make reset` between candidates cannot go wrong.
 - [ ] Round 1 second half — the small practical problems are Janu's; not written
       here yet.
 - [ ] Re-cut the two published artifacts (band, years, must-have list).
-- [ ] First git commit — see *Housekeeping*.
+- [x] First git commit — repo initialised, 40 files across 7 commits.
 
 **`make verify` must end with `All rounds verified.`** If a defect stops firing,
 that round silently measures nothing and you cannot tell from the outside. Run it
@@ -132,27 +135,24 @@ after `make reset`, after editing any seeded file, and quarterly.
 
 ## Housekeeping
 
-Not a git repo yet, and the first commit lands on the default branch — which
-Janu's global git policy blocks Claude from doing. Run it yourself:
+Repo is initialised and committed — 40 files across 7 commits on
+`setup/interview-materials`. `work/`, venvs, `__pycache__`, `.pytest_cache` and
+`.idea/` are gitignored and absent from history. The PyCharm scaffold `main.py`
+is already deleted.
+
+**Make it a private repo.** It carries answer keys, names the location of every
+seeded defect, and records the band and hiring thesis.
+
+Remaining, to run yourself:
 
 ```
 cd ~/Desktop/code/interviews
-git init
-git add -A
-git commit -m "interview materials: rounds 1-3"
 git remote add origin <private repo url>
-git push -u origin HEAD
+git push -u origin setup/interview-materials
 ```
 
-**Make it a private repo.** It carries answer keys and names the location of
-every seeded defect.
-
-Then on the other machine:
-
-```
-git clone <url> interviews && cd interviews
-make setup && make verify
-```
-
-Expect `All rounds verified.` The PyCharm scaffold `main.py` is already deleted;
-`.idea/`, venvs and `work/` are gitignored.
+Preparing a candidate machine is **not** just clone-and-setup — the candidate
+has a shell in rounds 2 and 3, so the clone must be stripped after building.
+See *Preparing the candidate workstation* in `README.md` for the sequence and
+the one constraint that matters (`work/` cannot be moved; its venvs hold
+editable installs bound to absolute paths).
